@@ -1,0 +1,110 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+time = np.arange(0, 21,)
+biomass = np.zeros(len(time))
+
+
+M = 1  # instantaneous rate of natural mortality
+K = 1 # K = (alpha/np.exp(-M)) - beta
+h = 0.7
+
+beta = (0.2 * K * (1 - h)) / (h - 0.2)
+alpha = (K + beta) * (np.exp(M) - 1)
+
+sigma_r = 0.3
+sigma_s = 0.2
+
+
+list_of_biomass_list = np.array([np.zeros(len(time))])
+catch_avg_list = np.array([])
+catch_var_avg_list = np.array([])
+biomass_last_list = np.array([])
+biomass_lower_list = np.array([])
+biomass_higher_list = np.array([])
+
+
+catch_var = np.zeros(len(time) -1)
+
+
+for ii in range(0,1000):
+    
+    e_t = np.random.normal(loc=0, scale= 0.3, size= len(time))
+    n_t = np.random.normal(loc=0, scale=sigma_s, size=len(time))
+    
+    noise = np.zeros(len(time))
+    for jj in range(0, len(time)):
+        noise[jj] = np.exp(e_t[jj] - (sigma_r**2)/2 )
+    
+      
+    biomass = np.zeros(len(time))
+    biomass[0] = K
+    
+    biomass_svy = np.zeros(len(time))
+    biomass_svy[0] = biomass[0] * np.exp(n_t[0] - (sigma_s**2)/2 )
+    
+    catch = np.zeros(len(time))
+    catch[0] = (biomass_svy[0]**0.5)
+    
+    for i in range(0, len(time) - 1):
+        
+        biomass[i + 1] = ( biomass[i] + ((alpha * biomass[i]) / (beta + biomass[i]))*noise[i] - catch[i] ) * np.exp(-M)
+        
+        
+        biomass_svy[i + 1] = biomass[i+1] * np.exp(n_t[i+1] - (sigma_s**2)/2 )
+        
+        catch[i+1] = (biomass_svy[i +1]**0.5)
+        
+        #if catch[i+1] < (catch[i]*0.95):
+            #catch[i+1] = 0.95*catch[i]
+        #elif catch[i+1] > (catch[i]*1.05):
+            #catch[i+1] = 1.05*catch[i]
+        #else :
+            #catch[i+1] = catch[i+1]
+        
+        
+    
+    catch_avg_list = np.append(catch_avg_list, np.mean(catch))
+    
+    for kk in range(0, len(time) - 1):
+        catch_var[kk] = ( abs(catch[kk+1] - catch[kk])/catch[kk] )*100
+    
+    catch_var_avg_list = np.append(catch_var_avg_list, np.mean(catch_var))
+    biomass_last_list = np.append(biomass_last_list, biomass[-1])
+    biomass_lower_list = np.append(biomass_lower_list, np.min(biomass))
+    biomass_higher_list = np.append(biomass_higher_list, np.max(biomass))
+    
+    
+    
+    
+    
+    
+    list_of_biomass_list = np.concatenate((list_of_biomass_list, [biomass]), axis=0 )
+    plt.plot(time, biomass)
+    
+plt.title('Graphs Biomass vs time with differnt noise')
+plt.show()
+
+avg_biomass = np.average(list_of_biomass_list, axis=0)
+plt.plot(time, avg_biomass)
+plt.xlabel('time in years')
+plt.ylabel('Squid biomass')
+plt.title('The graph of Biomass vs time with 1st Catch')
+plt.show()
+
+print(avg_biomass)
+cave = np.median(catch_avg_list)
+AAV = np.median(catch_var_avg_list)
+print(f'Cave {cave}')
+print(f'AAV {AAV}')
+
+
+biomass_last_list = np.sort(biomass_last_list)
+print(f' B_20 lower 5% {biomass_last_list[50]}')
+
+biomass_lower = np.median(biomass_lower_list)
+print(f'Biomass Lower {biomass_lower}')
+
+biomass_higher = np.median(biomass_higher_list)
+print(f'Biomass Higher {biomass_higher}')
