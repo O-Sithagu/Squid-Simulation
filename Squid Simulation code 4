@@ -1,0 +1,64 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+time = np.arange(0, 21,)
+biomass = np.zeros(len(time))
+
+
+M = 1  # instantaneous rate of natural mortality
+K = 1
+# K = (alpha/np.exp(-M)) - beta
+h = 0.7
+
+biomass[0] = K
+beta = (0.2 * K * (1 - h)) / (h - 0.2)
+alpha = (K + beta) * (np.exp(M) - 1)
+
+catch = np.full(len(time), 0.5)
+
+sigma_r = 0.3
+
+list_of_biomass_list = np.array([np.zeros(len(time))])
+ 
+    
+for i in range(0,1000):
+    e_t = np.random.normal(loc=0, scale= 0.3, size=no)
+    
+    noise = np.zeros(len(time))
+    for i in range(0, len(time)):
+        noise[i] = np.exp(e_t[i] - ((sigma_r**2)/ 2))
+    
+      
+    biomass = np.zeros(len(time))
+    biomass[0] = K
+    for i in range(0, len(time) - 1):
+        biomass[i + 1] = ( biomass[i] + ((alpha * biomass[i]) / (beta + biomass[i]))*noise[i] - catch[i] ) * np.exp(-M)
+    
+    list_of_biomass_list = np.concatenate((list_of_biomass_list, [biomass]), axis=0 )
+
+
+
+avg_biomass = np.average(list_of_biomass_list, axis=0)
+
+sigma_s = 0.2
+n_t = np.random.normal(loc=0, scale=sigma_s, size= len(time))
+
+biomass_svy = avg_biomass*np.exp(n_t - (sigma_s**2)/2 )
+
+plt.plot(time, biomass_svy)
+plt.title('Biomass Survey')
+plt.show()
+
+#We experiment with diffeernt catch fuctions that depend on biomass survey.
+
+
+catch_1 = biomass_svy*0.2
+catch_s_avg = np.average(catch_1)
+
+
+print(catch_s_avg)
+plt.plot(time, catch_1)
+plt.title('Catch each year')
+plt.show()
+
