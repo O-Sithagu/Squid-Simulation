@@ -1,0 +1,61 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+time = np.arange(0, 21,)
+biomass = np.zeros(len(time))
+
+
+M = 1  # instantaneous rate of natural mortality
+K = 1 # K = (alpha/np.exp(-M)) - beta
+h = 0.7
+
+beta = (0.2 * K * (1 - h)) / (h - 0.2)
+alpha = (K + beta) * (np.exp(M) - 1)
+
+sigma_r = 0.3
+sigma_s = 0.2
+
+
+list_of_biomass_list = np.array([np.zeros(len(time))])
+
+
+for ii in range(0,1000):
+    
+    e_t = np.random.normal(loc=0, scale= 0.3, size= len(time))
+    n_t = np.random.normal(loc=0, scale=sigma_s, size=len(time))
+    
+    noise = np.zeros(len(time))
+    for jj in range(0, len(time)):
+        noise[jj] = np.exp(e_t[jj] - (sigma_r**2)/2 )
+    
+      
+    biomass = np.zeros(len(time))
+    biomass[0] = K
+    
+    biomass_svy = np.zeros(len(time))
+    biomass_svy[0] = biomass[0] * np.exp(n_t[0] - (sigma_s**2)/2 )
+    
+    catch = np.zeros(len(time))
+    catch[0] = biomass_svy[0] * 0.2
+    
+    
+    for i in range(0, len(time) - 1):
+        
+        biomass[i + 1] = ( biomass[i] + ((alpha * biomass[i]) / (beta + biomass[i]))*noise[i] - catch[i] ) * np.exp(-M)
+        
+        
+        biomass_svy[i + 1] = biomass[i+1] * np.exp(n_t[i+1] - (sigma_s**2)/2 )
+        catch[i+1] = biomass_svy[i+1]*0.2
+        
+    
+    list_of_biomass_list = np.concatenate((list_of_biomass_list, [biomass]), axis=0 )
+    plt.plot(time, biomass)
+    
+plt.title('Graphs Biomass vs time with differnt noise')
+plt.show()
+
+avg_biomass = np.average(list_of_biomass_list, axis=0)
+plt.plot(time, avg_biomass)
+plt.title('The avg graph of Biomass vs time with noise')
+plt.show()
