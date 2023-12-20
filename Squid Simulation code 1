@@ -1,0 +1,43 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+
+time = np.arange(0, 21)
+biomass = np.zeros(len(time))
+
+M = 1  # instantaneous rate of natural mortality
+K = 1
+h = 0.7
+
+beta = (0.2 * K * (1 - h)) / (h - 0.2)
+alpha = (K + beta) * (np.exp(M) - 1)
+
+biomass[0] = K
+
+
+
+for j in range(0,10):
+    
+    catch = np.full(len(time),j*0.1)
+    
+    for i in range(0, len(time) - 1):
+        biomass[i + 1] = ( biomass[i] + ((alpha * biomass[i]) / (beta + biomass[i])) - catch[i] ) * np.exp(-M)
+    
+    plt.plot(time, biomass, label = f' catch = {"%.1f" % (j*0.1)}')
+
+catch1 = np.full(len(time), 1)
+for i in range(0, len(time) - 1):
+    if biomass[i] <= 0.09:
+            biomass[i + 1 ] = 0
+    else:
+        biomass[i + 1] = ( biomass[i] + ((alpha * biomass[i]) / (beta + biomass[i])) - catch1[i] ) * np.exp(-M)
+        
+
+plt.plot(time, biomass, label = f' catch = {"1"}')
+
+
+plt.title('Biomass vs time graph')
+plt.xlabel('time in years')
+plt.ylabel('Squid biomass')
+plt.legend()
+plt.show
