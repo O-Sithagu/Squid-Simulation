@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+
+time = np.arange(0, 21,)
+biomass = np.zeros(len(time))
+
+M = 1  # instantaneous rate of natural mortality
+K = 1
+# K = (alpha/np.exp(-M)) - beta
+h = 0.7
+
+beta = (0.2 * K * (1 - h)) / (h - 0.2)
+alpha = (K + beta) * (np.exp(M) - 1)
+
+biomass[0] = K
+
+catch = np.full(len(time), 0.7)
+
+noise = np.zeros(len(time))
+sigma_r = 0.3
+e_t = np.random.normal(loc=0, scale= sigma_r, size= len(time))
+
+for i in range(0, len(time)):
+    noise[i] = np.exp(e_t[i] - ((sigma_r**2)/ 2))
+
+for i in range(0, len(time) - 1):
+    biomass[i + 1] = ( biomass[i] + ((alpha * biomass[i]) / (beta + biomass[i]))*noise[i] - catch[i] ) * np.exp(-M)
+
+
+plt.plot(time, biomass)
+plt.xlabel('time in years')
+plt.ylabel('Squid biomass')
+plt.title('Biomass vs time with random factors')
+
+plt.show
